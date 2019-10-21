@@ -1,0 +1,2 @@
+def barrier = createBarrier count:3;
+awaitBarrier barrier:barrier, timeout:3, unit: 'SECONDS'

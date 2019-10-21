@@ -1,0 +1,56 @@
+def barrier = createBarrier count: 3;
+
+
+parallel(
+
+        await1: {
+            awaitBarrier barrier
+            echo '1'
+        },
+        await2: {
+            sleep 2
+            awaitBarrier barrier
+            echo '2'
+
+        },
+        await3: {
+            sleep 3
+            awaitBarrier barrier
+            echo '3'
+
+        }
+)
+
+
+def latch = createLatch count: 2;
+
+
+parallel(
+        wait: {
+            awaitLatch latch
+        },
+        countdown1: {
+            sleep 3
+            countDownLatch latch
+        },
+        countdown2: {
+            sleep 2
+            countDownLatch latch
+        }
+)
+
+def condition = createCondition()
+
+
+parallel(
+        wait1: {
+            awaitCondition condition
+        },
+        wait2: {
+            awaitCondition condition
+        },
+        countdown2: {
+            sleep 3
+            signalAll condition
+        }
+)

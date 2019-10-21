@@ -1,0 +1,18 @@
+def condition = createCondition()
+def out = false
+
+parallel(
+        wait1: {
+            awaitCondition condition
+            echo "out=${out}"
+        },
+        wait2: {
+            awaitCondition condition
+            echo "out=${out}"
+        },
+        countdown2: {
+            sleep 3
+            out = true
+            signalAll condition
+        }
+)
