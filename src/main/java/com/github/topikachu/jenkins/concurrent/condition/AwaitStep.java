@@ -1,8 +1,12 @@
 package com.github.topikachu.jenkins.concurrent.condition;
 
+import com.github.topikachu.jenkins.concurrent.exception.ConcurrentInterruptedException;
+import com.github.topikachu.jenkins.concurrent.exception.NotAValidLockRefException;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Extension;
 import hudson.model.TaskListener;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.jenkinsci.plugins.workflow.steps.*;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -13,14 +17,16 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-@Data
+@Getter
+@Setter
 public class AwaitStep extends Step implements Serializable {
+    private static final long serialVersionUID = -3666076914428236514L;
     private LockAndCondition condition;
     private long timeout;
     private TimeUnit unit = TimeUnit.SECONDS;
 
     @Override
-    public StepExecution start(StepContext stepContext) throws Exception {
+    public StepExecution start(StepContext stepContext) {
         return new Execution(stepContext, this);
     }
 
@@ -60,7 +66,8 @@ public class AwaitStep extends Step implements Serializable {
         }
     }
 
-    public static class Execution extends SynchronousNonBlockingStepExecution {
+    @SuppressFBWarnings("WA_AWAIT_NOT_IN_LOOP")
+    public static class Execution extends SynchronousNonBlockingStepExecution<ExitStatus> {
         private AwaitStep step;
 
         public Execution(StepContext context, AwaitStep step) {
@@ -69,28 +76,33 @@ public class AwaitStep extends Step implements Serializable {
         }
 
         @Override
-        protected Object run() throws Exception {
+        protected ExitStatus run() {
             LockAndCondition lockAndCondition = step.getCondition();
-            Optional.ofNullable(lockAndCondition.getLock())
-                    .ifPresent(
+            return Optional.ofNullable(lockAndCondition.getLock())
+                    .map(
                             lock -> {
                                 lock.lock();
                                 try {
                                     if (step.getTimeout() > 0) {
-                                        lockAndCondition.getCondition().await(step.getTimeout(), step.getUnit());
+                                        boolean causedBySignal = lockAndCondition.getCondition().await(step.getTimeout(), step.getUnit());
+                                        if (causedBySignal) {
+                                            return ExitStatus.COMPLETED;
+                                        } else {
+                                            return ExitStatus.TIMEOUT;
+                                        }
                                     } else {
                                         lockAndCondition.getCondition().await();
+                                        return ExitStatus.COMPLETED;
                                     }
                                 } catch (InterruptedException e) {
-                                    throw new RuntimeException(e);
+                                    throw new ConcurrentInterruptedException();
                                 } finally {
                                     lock.unlock();
                                 }
                             }
-                    );
+                    )
+                    .orElseThrow(NotAValidLockRefException::new);
 
-
-            return null;
         }
 
     }

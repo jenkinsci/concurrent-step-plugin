@@ -2,7 +2,8 @@ package com.github.topikachu.jenkins.concurrent.latch;
 
 import hudson.Extension;
 import hudson.model.TaskListener;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.jenkinsci.plugins.workflow.steps.*;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -13,12 +14,14 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
-@Data
+@Getter
+@Setter
 public class CountDownStep extends Step implements Serializable {
+    private static final long serialVersionUID = 8351999924255758163L;
     private LatchRef latch;
 
     @Override
-    public StepExecution start(StepContext stepContext) throws Exception {
+    public StepExecution start(StepContext stepContext) {
         return new Execution(stepContext, this);
     }
 
@@ -58,7 +61,7 @@ public class CountDownStep extends Step implements Serializable {
         }
 
         @Override
-        protected Object run() throws Exception {
+        protected Object run() {
             countDown();
             return null;
         }

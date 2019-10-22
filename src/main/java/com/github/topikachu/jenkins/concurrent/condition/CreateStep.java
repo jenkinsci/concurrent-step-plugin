@@ -2,7 +2,8 @@ package com.github.topikachu.jenkins.concurrent.condition;
 
 import hudson.Extension;
 import hudson.model.TaskListener;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.jenkinsci.plugins.workflow.steps.*;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -11,12 +12,15 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
-@Data
+@Getter
+@Setter
 public class CreateStep extends Step implements Serializable {
 
 
+    private static final long serialVersionUID = -2236165192828626451L;
+
     @Override
-    public StepExecution start(StepContext stepContext) throws Exception {
+    public StepExecution start(StepContext stepContext) {
         return new Execution(stepContext, this);
     }
 
@@ -57,7 +61,7 @@ public class CreateStep extends Step implements Serializable {
         }
 
         @Override
-        protected LockAndCondition run() throws Exception {
+        protected LockAndCondition run() {
 
             ReentrantLock lock = new ReentrantLock();
             return LockAndCondition.builder().lock(lock).build();

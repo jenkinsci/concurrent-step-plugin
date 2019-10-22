@@ -2,7 +2,8 @@ package com.github.topikachu.jenkins.concurrent.condition;
 
 import hudson.Extension;
 import hudson.model.TaskListener;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.jenkinsci.plugins.workflow.steps.*;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -11,12 +12,14 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
 public class SignalAllStep extends Step implements Serializable {
+    private static final long serialVersionUID = -1356972213491598903L;
     private LockAndCondition condition;
 
     @Override
-    public StepExecution start(StepContext stepContext) throws Exception {
+    public StepExecution start(StepContext stepContext) {
         return new Execution(stepContext, this);
     }
 
@@ -56,7 +59,7 @@ public class SignalAllStep extends Step implements Serializable {
         }
 
         @Override
-        protected Object run() throws Exception {
+        protected Object run() {
             signAll();
             return null;
         }

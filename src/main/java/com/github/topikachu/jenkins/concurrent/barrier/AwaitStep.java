@@ -1,8 +1,11 @@
 package com.github.topikachu.jenkins.concurrent.barrier;
 
+import com.github.topikachu.jenkins.concurrent.exception.ConcurrentInterruptedException;
+import com.github.topikachu.jenkins.concurrent.exception.NotAValidLockRefException;
 import hudson.Extension;
 import hudson.model.TaskListener;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.jenkinsci.plugins.workflow.steps.*;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -11,11 +14,14 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-@Data
+@Getter
+@Setter
 public class AwaitStep extends Step implements Serializable {
+    private static final long serialVersionUID = 3637188256729702059L;
     private BarrierRef barrier;
     private long timeout;
     private TimeUnit unit = TimeUnit.SECONDS;
@@ -60,7 +66,7 @@ public class AwaitStep extends Step implements Serializable {
         }
     }
 
-    public static class Execution extends SynchronousNonBlockingStepExecution<Boolean> {
+    public static class Execution extends SynchronousNonBlockingStepExecution<ExitStatus> {
         private AwaitStep step;
 
         public Execution(StepContext context, AwaitStep step) {
@@ -69,9 +75,9 @@ public class AwaitStep extends Step implements Serializable {
         }
 
         @Override
-        protected Boolean run() throws Exception {
-            Optional.ofNullable(step.getBarrier().getCyclicBarrier())
-                    .ifPresent(
+        protected ExitStatus run() {
+            return Optional.ofNullable(step.getBarrier().getCyclicBarrier())
+                    .map(
                             barrier -> {
                                 try {
                                     if (step.getTimeout() > 0) {
@@ -79,16 +85,19 @@ public class AwaitStep extends Step implements Serializable {
                                     } else {
                                         barrier.await();
                                     }
+                                    return ExitStatus.COMPLETED;
                                 } catch (TimeoutException e) {
+                                    return ExitStatus.TIMEOUT;
 
-                                } catch (Exception e) {
-                                    throw new RuntimeException(e);
+                                } catch (BrokenBarrierException e) {
+                                    return ExitStatus.BROKEN;
+                                } catch (InterruptedException e) {
+                                    throw new ConcurrentInterruptedException(e);
                                 }
                             }
-                    );
-            return true;
+                    ).orElseThrow(NotAValidLockRefException::new);
         }
 
-
     }
+
 }

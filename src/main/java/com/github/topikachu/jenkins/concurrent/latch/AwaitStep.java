@@ -1,8 +1,11 @@
 package com.github.topikachu.jenkins.concurrent.latch;
 
+import com.github.topikachu.jenkins.concurrent.exception.ConcurrentInterruptedException;
+import com.github.topikachu.jenkins.concurrent.exception.NotAValidLockRefException;
 import hudson.Extension;
 import hudson.model.TaskListener;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.jenkinsci.plugins.workflow.steps.*;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -14,14 +17,16 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-@Data
+@Getter
+@Setter
 public class AwaitStep extends Step implements Serializable {
+    private static final long serialVersionUID = -6128324288332670699L;
     private LatchRef latch;
     private long timeout;
     private TimeUnit unit = TimeUnit.SECONDS;
 
     @Override
-    public StepExecution start(StepContext stepContext) throws Exception {
+    public StepExecution start(StepContext stepContext) {
         return new Execution(stepContext, this);
     }
 
@@ -61,7 +66,7 @@ public class AwaitStep extends Step implements Serializable {
         }
     }
 
-    public static class Execution extends SynchronousNonBlockingStepExecution {
+    public static class Execution extends SynchronousNonBlockingStepExecution<ExitStatus> {
         private AwaitStep step;
 
         public Execution(StepContext context, AwaitStep step) {
@@ -70,24 +75,29 @@ public class AwaitStep extends Step implements Serializable {
         }
 
         @Override
-        protected Object run() throws Exception {
-            Optional.ofNullable(step.getLatch().getCountDownLatch())
-                    .ifPresent(
+        protected ExitStatus run() {
+            return Optional.ofNullable(step.getLatch().getCountDownLatch())
+                    .map(
                             latch -> {
                                 try {
                                     if (step.getTimeout() > 0) {
-                                        latch.await(step.getTimeout(), step.getUnit());
+                                        boolean causedByCountDownZero = latch.await(step.getTimeout(), step.getUnit());
+                                        if (causedByCountDownZero) {
+                                            return ExitStatus.COMPLETED;
+                                        } else {
+                                            return ExitStatus.TIMEOUT;
+                                        }
                                     } else {
                                         latch.await();
+                                        return ExitStatus.COMPLETED;
                                     }
+
                                 } catch (InterruptedException e) {
-                                    throw new RuntimeException(e);
+                                    throw new ConcurrentInterruptedException(e);
                                 }
                             }
-                    );
-
-
-            return null;
+                    )
+                    .orElseThrow(NotAValidLockRefException::new);
         }
 
 
