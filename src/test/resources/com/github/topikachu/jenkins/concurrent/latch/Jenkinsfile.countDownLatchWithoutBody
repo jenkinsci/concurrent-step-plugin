@@ -20,4 +20,3 @@ parallel(
             countDownLatch latch
         }
 )
-

@@ -1,5 +1,6 @@
 package com.github.topikachu.jenkins.concurrent.condition;
 
+import org.apache.commons.io.IOUtils;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
@@ -15,23 +16,36 @@ public class ConditionTest {
     @Rule
     public JenkinsRule r = new JenkinsRule();
 
-    @Test(timeout = 5000)
-    public void testPlugin() throws Exception {
 
-        BufferedReader jenkinsFileReader = new BufferedReader(new InputStreamReader(ConditionTest.class.getResourceAsStream("Jenkinsfile")));
-        String jenkinsFileContent = jenkinsFileReader.lines().collect(Collectors.joining("\n"));
+    @Test(timeout = 5000)
+    public void testSignalAllWithoutBody() throws Exception {
+
+        String jenkinsFileContent = IOUtils.toString(ConditionTest.class.getResourceAsStream("Jenkinsfile.signalAllWithoutBody"));
         WorkflowJob p = r.jenkins.createProject(WorkflowJob.class, "p");
         p.setDefinition(new CpsFlowDefinition(jenkinsFileContent, true));
         WorkflowRun b = r.assertBuildStatusSuccess(p.scheduleBuild2(0));
+        r.assertLogContains("out=true", b);
+        r.assertLogNotContains("out=false", b);
+    }
+
+    @Test(timeout = 5000)
+    public void testSignalAllWithBody() throws Exception {
+
+        String jenkinsFileContent = IOUtils.toString(ConditionTest.class.getResourceAsStream("Jenkinsfile.signalAllWithBody"));
+        WorkflowJob p = r.jenkins.createProject(WorkflowJob.class, "p");
+        p.setDefinition(new CpsFlowDefinition(jenkinsFileContent, true));
+        WorkflowRun b = r.assertBuildStatusSuccess(p.scheduleBuild2(0));
+        r.assertLogContains("out=true", b);
         r.assertLogNotContains("out=false", b);
     }
 
     @Test(timeout = 5000)
     public void testTimeout() throws Exception {
-        BufferedReader jenkinsFileReader = new BufferedReader(new InputStreamReader(ConditionTest.class.getResourceAsStream("Jenkinsfile2")));
-        String jenkinsFileContent = jenkinsFileReader.lines().collect(Collectors.joining("\n"));
+        String jenkinsFileContent = IOUtils.toString(ConditionTest.class.getResourceAsStream("Jenkinsfile.awaitTimeout"));
         WorkflowJob p = r.jenkins.createProject(WorkflowJob.class, "p");
         p.setDefinition(new CpsFlowDefinition(jenkinsFileContent, true));
-        r.assertBuildStatusSuccess(p.scheduleBuild2(0));
+        WorkflowRun b = r.assertBuildStatusSuccess(p.scheduleBuild2(0));
+        r.assertLogContains("status=TIMEOUT", b);
+
     }
 }

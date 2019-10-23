@@ -49,9 +49,14 @@ public class CountDownStep extends Step implements Serializable {
         public String getDisplayName() {
             return "Decrements the count of the latch.";
         }
+
+        @Override
+        public boolean takesImplicitBlockArgument() {
+            return true;
+        }
     }
 
-    public static class Execution extends SynchronousStepExecution {
+    public static class Execution extends SynchronousNonBlockingStepExecution {
         private CountDownStep step;
 
 
@@ -62,7 +67,22 @@ public class CountDownStep extends Step implements Serializable {
 
         @Override
         protected Object run() {
-            countDown();
+            if (getContext().hasBody()) {
+                getContext().newBodyInvoker().withCallback(new BodyExecutionCallback() {
+                    @Override
+                    public void onSuccess(StepContext context, Object result) {
+                        countDown();
+                    }
+
+                    @Override
+                    public void onFailure(StepContext context, Throwable t) {
+                        countDown();
+                        context.onFailure(t);
+                    }
+                }).start();
+            } else {
+                countDown();
+            }
             return null;
         }
 

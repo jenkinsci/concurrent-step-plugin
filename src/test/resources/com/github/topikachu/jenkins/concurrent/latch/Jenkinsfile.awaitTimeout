@@ -1,0 +1,3 @@
+def latch = createLatch()
+def status=awaitLatch latch:latch, timeout:3, unit: 'SECONDS'
+echo "status=${status}"

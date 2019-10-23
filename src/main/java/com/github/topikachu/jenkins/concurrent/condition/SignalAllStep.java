@@ -47,9 +47,14 @@ public class SignalAllStep extends Step implements Serializable {
         public String getDisplayName() {
             return "Notify all wa.";
         }
+
+        @Override
+        public boolean takesImplicitBlockArgument() {
+            return true;
+        }
     }
 
-    public static class Execution extends SynchronousStepExecution {
+    public static class Execution extends SynchronousNonBlockingStepExecution {
         private SignalAllStep step;
 
 
@@ -60,11 +65,27 @@ public class SignalAllStep extends Step implements Serializable {
 
         @Override
         protected Object run() {
-            signAll();
+
+            if (getContext().hasBody()) {
+                getContext().newBodyInvoker().withCallback(new BodyExecutionCallback() {
+                    @Override
+                    public void onSuccess(StepContext context, Object result) {
+                        signalAll();
+                    }
+
+                    @Override
+                    public void onFailure(StepContext context, Throwable t) {
+                        signalAll();
+                        context.onFailure(t);
+                    }
+                }).start();
+            } else {
+                signalAll();
+            }
             return null;
         }
 
-        private void signAll() {
+        private void signalAll() {
             LockAndCondition lockAndCondition = step.getCondition();
             Optional.ofNullable(lockAndCondition.getLock())
                     .ifPresent(
@@ -82,8 +103,10 @@ public class SignalAllStep extends Step implements Serializable {
 
         @Override
         public void stop(Throwable cause) throws Exception {
-            signAll();
+            signalAll();
             super.stop(cause);
         }
     }
+
+
 }

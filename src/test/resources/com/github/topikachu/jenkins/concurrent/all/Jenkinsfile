@@ -49,7 +49,7 @@ parallel(
         wait2: {
             awaitCondition condition
         },
-        countdown2: {
+        signalAll: {
             sleep 3
             signalAll condition
         }

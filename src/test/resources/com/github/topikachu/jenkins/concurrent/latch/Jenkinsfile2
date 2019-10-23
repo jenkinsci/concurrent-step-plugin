@@ -1,2 +1,0 @@
-def latch = createLatch()
-awaitLatch latch:latch, timeout:3, unit: 'SECONDS'

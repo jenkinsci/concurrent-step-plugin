@@ -68,9 +68,8 @@ public class CreateStep extends Step implements Serializable {
 
         @Override
         protected BarrierRef run() {
-
             return BarrierRef.builder()
-                    .cyclicBarrier(new CyclicBarrier(step.getCount()))
+                    .count(step.getCount())
                     .build();
         }
 

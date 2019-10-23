@@ -1,4 +1,5 @@
 def condition = createCondition()
+
 def out = false
 
 parallel(
@@ -10,9 +11,10 @@ parallel(
             awaitCondition condition
             echo "out=${out}"
         },
-        countdown2: {
-            sleep 3
-            out = true
-            signalAll condition
+        signalAll: {
+            signalAll (condition:condition) {
+                sleep 3
+                out = true
+            }
         }
 )

@@ -1,0 +1,3 @@
+def condition = createCondition()
+def status=awaitCondition condition:condition, timeout:3, unit: 'SECONDS'
+println("status=${status}")

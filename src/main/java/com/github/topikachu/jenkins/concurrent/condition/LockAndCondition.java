@@ -7,9 +7,9 @@ import lombok.Data;
 import java.io.Serializable;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Data
-
 public class LockAndCondition implements Serializable {
     private static final long serialVersionUID = 4871938278796007364L;
     @SuppressFBWarnings("SE_TRANSIENT_FIELD_NOT_RESTORED")
@@ -18,8 +18,8 @@ public class LockAndCondition implements Serializable {
     private transient Condition condition;
 
     @Builder
-    public LockAndCondition(Lock lock) {
-        this.lock = lock;
+    private LockAndCondition() {
+        this.lock = new ReentrantLock();
         this.condition = lock.newCondition();
     }
 

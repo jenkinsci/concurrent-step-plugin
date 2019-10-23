@@ -70,7 +70,7 @@ public class CreateStep extends Step implements Serializable {
         protected LatchRef run() {
 
             return LatchRef.builder()
-                    .countDownLatch(new CountDownLatch(step.getCount()))
+                    .count(step.getCount())
                     .build();
 
         }

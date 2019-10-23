@@ -6,7 +6,10 @@ import hudson.Extension;
 import hudson.model.TaskListener;
 import lombok.Getter;
 import lombok.Setter;
-import org.jenkinsci.plugins.workflow.steps.*;
+import org.jenkinsci.plugins.workflow.steps.Step;
+import org.jenkinsci.plugins.workflow.steps.StepContext;
+import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
+import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
@@ -14,9 +17,7 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 @Getter
 @Setter
@@ -64,9 +65,14 @@ public class AwaitStep extends Step implements Serializable {
         public String getDisplayName() {
             return "Waits until all parties have invoked await on this barrier.";
         }
+
+        @Override
+        public boolean takesImplicitBlockArgument() {
+            return true;
+        }
     }
 
-    public static class Execution extends SynchronousNonBlockingStepExecution<ExitStatus> {
+    public static class Execution extends StepExecution {
         private AwaitStep step;
 
         public Execution(StepContext context, AwaitStep step) {
@@ -74,8 +80,8 @@ public class AwaitStep extends Step implements Serializable {
             this.step = step;
         }
 
-        @Override
-        protected ExitStatus run() {
+
+        private ExitStatus await() {
             return Optional.ofNullable(step.getBarrier().getCyclicBarrier())
                     .map(
                             barrier -> {
@@ -98,6 +104,39 @@ public class AwaitStep extends Step implements Serializable {
                     ).orElseThrow(NotAValidLockRefException::new);
         }
 
+        @Override
+        public boolean start() throws Exception {
+            CompletableFuture completedFuture = new CompletableFuture();
+
+            if (getContext().hasBody()) {
+                completedFuture = completedFuture.supplyAsync(() -> {
+                            try {
+                                getContext().newBodyInvoker().start().get();
+                            } catch (InterruptedException e) {
+
+                            } catch (ExecutionException e) {
+
+                            }
+                            return null;
+                        }
+                )
+
+                ;
+
+            } else {
+                completedFuture = completedFuture.supplyAsync(() -> null);
+            }
+
+            completedFuture.thenApplyAsync(p -> await())
+                    .thenApply(status -> {
+                        getContext().onSuccess(status);
+                        return null;
+                    });
+
+
+            return false;
+        }
     }
+
 
 }

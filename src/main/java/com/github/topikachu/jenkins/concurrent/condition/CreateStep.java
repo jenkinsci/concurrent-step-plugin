@@ -63,8 +63,7 @@ public class CreateStep extends Step implements Serializable {
         @Override
         protected LockAndCondition run() {
 
-            ReentrantLock lock = new ReentrantLock();
-            return LockAndCondition.builder().lock(lock).build();
+            return LockAndCondition.builder().build();
 
 
         }

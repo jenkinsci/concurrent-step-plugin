@@ -1,0 +1,3 @@
+def barrier = createBarrier count:3;
+def status = awaitBarrier barrier:barrier, timeout:3, unit: 'SECONDS'
+println("status=${status}")

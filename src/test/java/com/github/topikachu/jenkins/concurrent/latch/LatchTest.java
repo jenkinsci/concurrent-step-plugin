@@ -1,5 +1,6 @@
 package com.github.topikachu.jenkins.concurrent.latch;
 
+import org.apache.commons.io.IOUtils;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
@@ -16,23 +17,37 @@ public class LatchTest {
     public JenkinsRule r = new JenkinsRule();
 
     @Test(timeout = 5000)
-    public void testPlugin() throws Exception {
+    public void testCountDownLatchWithBody() throws Exception {
 
-        BufferedReader jenkinsFileReader = new BufferedReader(new InputStreamReader(LatchTest.class.getResourceAsStream("Jenkinsfile")));
-        String jenkinsFileContent = jenkinsFileReader.lines().collect(Collectors.joining("\n"));
+        String jenkinsFileContent = IOUtils.toString(LatchTest.class.getResourceAsStream("Jenkinsfile.countDownLatchWithBody"));
         WorkflowJob p = r.jenkins.createProject(WorkflowJob.class, "p");
         p.setDefinition(new CpsFlowDefinition(jenkinsFileContent, true));
         WorkflowRun b = r.assertBuildStatusSuccess(p.scheduleBuild2(0));
+        r.assertLogContains("var1=true", b);
+        r.assertLogContains("var2=true", b);
+        r.assertLogNotContains("var1=false", b);
+        r.assertLogNotContains("var2=false", b);
+    }
+
+    @Test(timeout = 5000)
+    public void testCountDownLatchWithoutBody() throws Exception {
+
+        String jenkinsFileContent = IOUtils.toString(LatchTest.class.getResourceAsStream("Jenkinsfile.countDownLatchWithoutBody"));
+        WorkflowJob p = r.jenkins.createProject(WorkflowJob.class, "p");
+        p.setDefinition(new CpsFlowDefinition(jenkinsFileContent, true));
+        WorkflowRun b = r.assertBuildStatusSuccess(p.scheduleBuild2(0));
+        r.assertLogContains("var1=true", b);
+        r.assertLogContains("var2=true", b);
         r.assertLogNotContains("var1=false", b);
         r.assertLogNotContains("var2=false", b);
     }
 
     @Test(timeout = 5000)
     public void testTimeout() throws Exception {
-        BufferedReader jenkinsFileReader = new BufferedReader(new InputStreamReader(LatchTest.class.getResourceAsStream("Jenkinsfile2")));
-        String jenkinsFileContent = jenkinsFileReader.lines().collect(Collectors.joining("\n"));
+        String jenkinsFileContent = IOUtils.toString(LatchTest.class.getResourceAsStream("Jenkinsfile.awaitTimeout"));
         WorkflowJob p = r.jenkins.createProject(WorkflowJob.class, "p");
         p.setDefinition(new CpsFlowDefinition(jenkinsFileContent, true));
-        r.assertBuildStatusSuccess(p.scheduleBuild2(0));
+        WorkflowRun b = r.assertBuildStatusSuccess(p.scheduleBuild2(0));
+        r.assertLogContains("status=TIMEOUT", b);
     }
 }

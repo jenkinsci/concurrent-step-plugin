@@ -1,2 +1,0 @@
-def condition = createCondition()
-awaitCondition condition:condition, timeout:3, unit: 'SECONDS'
