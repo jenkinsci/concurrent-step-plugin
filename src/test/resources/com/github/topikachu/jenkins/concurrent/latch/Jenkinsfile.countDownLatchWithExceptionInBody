@@ -1,0 +1,30 @@
+def latch = createLatch count: 2;
+
+def var1 = false;
+def var2 = false;
+
+parallel(
+        wait: {
+            awaitLatch latch
+            echo "var1=${var1}"
+            echo "var2=${var2}"
+        },
+        countdown1: {
+            try {
+                countDownLatch (latch) {
+                    sleep 3
+                    var1 = true
+                    throw new RuntimeException()
+                }
+            }catch (RuntimeException e){
+                echo "has exception"
+            }
+        },
+        countdown2: {
+
+            countDownLatch (latch) {
+                sleep 2
+                var2 = true
+            }
+        }
+)

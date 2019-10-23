@@ -1,10 +1,15 @@
 package com.github.topikachu.jenkins.concurrent.latch;
 
+import com.github.topikachu.jenkins.concurrent.exception.ConcurrentException;
+import com.github.topikachu.jenkins.concurrent.exception.ConcurrentInterruptedException;
 import hudson.Extension;
 import hudson.model.TaskListener;
 import lombok.Getter;
 import lombok.Setter;
-import org.jenkinsci.plugins.workflow.steps.*;
+import org.jenkinsci.plugins.workflow.steps.Step;
+import org.jenkinsci.plugins.workflow.steps.StepContext;
+import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
+import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
@@ -12,7 +17,9 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 
 @Getter
 @Setter
@@ -56,7 +63,7 @@ public class CountDownStep extends Step implements Serializable {
         }
     }
 
-    public static class Execution extends SynchronousNonBlockingStepExecution {
+    public static class Execution extends StepExecution {
         private CountDownStep step;
 
 
@@ -66,24 +73,34 @@ public class CountDownStep extends Step implements Serializable {
         }
 
         @Override
-        protected Object run() {
-            if (getContext().hasBody()) {
-                getContext().newBodyInvoker().withCallback(new BodyExecutionCallback() {
-                    @Override
-                    public void onSuccess(StepContext context, Object result) {
-                        countDown();
-                    }
+        public boolean start() {
+            CompletableFuture
+                    .runAsync(() -> {
+                                if (getContext().hasBody()) {
+                                    try {
+                                        getContext().newBodyInvoker().start().get();
+                                    } catch (InterruptedException e) {
+                                        throw new ConcurrentInterruptedException(e);
+                                    } catch (ExecutionException e) {
+                                        throw new ConcurrentException(e);
+                                    }
+                                }
+                            }
 
-                    @Override
-                    public void onFailure(StepContext context, Throwable t) {
-                        countDown();
-                        context.onFailure(t);
-                    }
-                }).start();
-            } else {
-                countDown();
-            }
-            return null;
+                    )
+                    .handleAsync((none, throwable) -> {
+                                countDown();
+                                if (throwable == null) {
+                                    getContext().onSuccess(null);
+
+                                } else {
+                                    getContext().onFailure(throwable);
+                                }
+                                return null;
+                            }
+                    );
+
+            return false;
         }
 
 

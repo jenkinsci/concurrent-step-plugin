@@ -43,6 +43,21 @@ public class LatchTest {
     }
 
     @Test(timeout = 5000)
+    public void testCountDownLatchWithExceptionInBody() throws Exception {
+
+        String jenkinsFileContent = IOUtils.toString(LatchTest.class.getResourceAsStream("Jenkinsfile.countDownLatchWithExceptionInBody"));
+        WorkflowJob p = r.jenkins.createProject(WorkflowJob.class, "p");
+        p.setDefinition(new CpsFlowDefinition(jenkinsFileContent, true));
+        WorkflowRun b = r.assertBuildStatusSuccess(p.scheduleBuild2(0));
+        r.assertLogContains("var1=true", b);
+        r.assertLogContains("var2=true", b);
+        r.assertLogNotContains("var1=false", b);
+        r.assertLogNotContains("var2=false", b);
+        r.assertLogContains("has exception", b);
+
+    }
+
+    @Test(timeout = 5000)
     public void testTimeout() throws Exception {
         String jenkinsFileContent = IOUtils.toString(LatchTest.class.getResourceAsStream("Jenkinsfile.awaitTimeout"));
         WorkflowJob p = r.jenkins.createProject(WorkflowJob.class, "p");

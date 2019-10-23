@@ -1,0 +1,26 @@
+def semaphore = createSemaphore 1
+
+def out2=0
+parallel(
+        semaphore1: {
+            try{
+            acquireSemaphore (semaphore){
+                echo "out1 1"
+                sleep 3
+                out2=2
+                throw new RuntimeException()
+            }}
+            catch (RuntimeException e){
+                echo "has exception"
+            }
+
+
+        },
+        semaphore2: {
+            sleep 1
+            acquireSemaphore (semaphore){
+                echo "out2 ${out2}"
+            }
+        }
+)
+

@@ -1,0 +1,31 @@
+def barrier = createBarrier count: 3;
+
+boolean out = false
+
+parallel(
+
+        await1: {
+            awaitBarrier barrier
+            echo "out=${out}"
+        },
+        await2: {
+            try{
+                awaitBarrier (barrier){
+                    sleep 2
+                    throw new RuntimeException();
+                }
+            }catch(RuntimeException e){
+                echo "has exception"
+            }
+
+            echo "out=${out}"
+        },
+        await3: {
+
+            awaitBarrier (barrier){
+                sleep 3
+                out = true
+            }
+            echo "out=${out}"
+        }
+)

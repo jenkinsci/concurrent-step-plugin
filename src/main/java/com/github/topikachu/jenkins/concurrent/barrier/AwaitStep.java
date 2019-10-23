@@ -1,5 +1,6 @@
 package com.github.topikachu.jenkins.concurrent.barrier;
 
+import com.github.topikachu.jenkins.concurrent.exception.ConcurrentException;
 import com.github.topikachu.jenkins.concurrent.exception.ConcurrentInterruptedException;
 import com.github.topikachu.jenkins.concurrent.exception.NotAValidLockRefException;
 import hudson.Extension;
@@ -106,34 +107,27 @@ public class AwaitStep extends Step implements Serializable {
 
         @Override
         public boolean start() throws Exception {
-            CompletableFuture completedFuture = new CompletableFuture();
-
-            if (getContext().hasBody()) {
-                completedFuture = completedFuture.supplyAsync(() -> {
+            CompletableFuture
+                    .runAsync(() -> {
+                        if (getContext().hasBody()) {
                             try {
                                 getContext().newBodyInvoker().start().get();
                             } catch (InterruptedException e) {
-
+                                throw new ConcurrentInterruptedException(e);
                             } catch (ExecutionException e) {
-
+                                throw new ConcurrentException(e);
                             }
-                            return null;
                         }
-                )
-
-                ;
-
-            } else {
-                completedFuture = completedFuture.supplyAsync(() -> null);
-            }
-
-            completedFuture.thenApplyAsync(p -> await())
-                    .thenApply(status -> {
-                        getContext().onSuccess(status);
+                    })
+                    .handleAsync((none, throwable) -> {
+                        ExitStatus status = await();
+                        if (throwable == null) {
+                            getContext().onSuccess(status);
+                        } else {
+                            getContext().onFailure(throwable);
+                        }
                         return null;
                     });
-
-
             return false;
         }
     }

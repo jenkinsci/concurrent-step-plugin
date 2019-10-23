@@ -42,6 +42,18 @@ public class BarrierTest {
     }
 
     @Test(timeout = 5000)
+    public void testAwaitWithExceptionInBody() throws Exception {
+        String jenkinsFileContent = IOUtils.toString(BarrierTest.class.getResourceAsStream("Jenkinsfile.awaitWithExceptionInBody"));
+        WorkflowJob p = r.jenkins.createProject(WorkflowJob.class, "p");
+        p.setDefinition(new CpsFlowDefinition(jenkinsFileContent, true));
+        WorkflowRun b = r.assertBuildStatusSuccess(p.scheduleBuild2(0));
+        r.assertLogContains("out=true", b);
+        r.assertLogContains("has exception", b);
+        r.assertLogNotContains("out=false", b);
+
+    }
+
+    @Test(timeout = 5000)
     public void testTimeout() throws Exception {
         String jenkinsFileContent = IOUtils.toString(BarrierTest.class.getResourceAsStream("Jenkinsfile.awaitTimeout"));
         WorkflowJob p = r.jenkins.createProject(WorkflowJob.class, "p");

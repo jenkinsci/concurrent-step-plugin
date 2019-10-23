@@ -54,3 +54,24 @@ parallel(
             signalAll condition
         }
 )
+
+
+def semaphore = createSemaphore 1
+
+parallel(
+        semaphore1: {
+            acquireSemaphore(semaphore) {
+
+                sleep 3
+
+            }
+
+
+        },
+        semaphore2: {
+            sleep 1
+            acquireSemaphore(semaphore) {
+                sleep 1
+            }
+        }
+)

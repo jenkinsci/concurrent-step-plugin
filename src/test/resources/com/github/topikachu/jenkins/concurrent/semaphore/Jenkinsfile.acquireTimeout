@@ -1,0 +1,13 @@
+def semaphore = createSemaphore 1
+parallel(
+        semaphore1: {
+            acquireSemaphore semaphore
+            //without release
+        },
+        semaphore2: {
+            sleep 3
+            def status = acquireSemaphore semaphore:semaphore, timeout:3
+            echo "status=${status}"
+        }
+)
+
