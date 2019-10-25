@@ -116,6 +116,11 @@ public class SignalAllStep extends Step implements Serializable {
             signalAll();
             super.stop(cause);
         }
+
+        @Override
+        public void onResume() {
+            getContext().onFailure(new Exception("Resume after a restart not supported"));
+        }
     }
 
 

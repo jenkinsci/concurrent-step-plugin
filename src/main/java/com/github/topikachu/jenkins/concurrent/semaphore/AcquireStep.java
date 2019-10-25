@@ -155,5 +155,10 @@ public class AcquireStep extends Step implements Serializable {
                     .ifPresent(semaphore -> semaphore.release(step.getPermit()));
             super.stop(throwable);
         }
+
+        @Override
+        public void onResume() {
+            getContext().onFailure(new Exception("Resume after a restart not supported"));
+        }
     }
 }

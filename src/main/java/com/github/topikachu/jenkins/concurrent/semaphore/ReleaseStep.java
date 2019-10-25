@@ -97,5 +97,10 @@ public class ReleaseStep extends Step implements Serializable {
             Optional.ofNullable(step.getSemaphore().getSemaphore())
                     .ifPresent(Semaphore::release);
         }
+
+        @Override
+        public void onResume() {
+            getContext().onFailure(new Exception("Resume after a restart not supported"));
+        }
     }
 }

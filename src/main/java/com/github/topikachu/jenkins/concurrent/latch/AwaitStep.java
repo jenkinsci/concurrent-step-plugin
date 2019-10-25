@@ -111,5 +111,10 @@ public class AwaitStep extends Step implements Serializable {
                     });
             super.stop(throwable);
         }
+
+        @Override
+        public void onResume() {
+            getContext().onFailure(new Exception("Resume after a restart not supported"));
+        }
     }
 }

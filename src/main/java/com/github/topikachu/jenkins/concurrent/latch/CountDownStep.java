@@ -114,5 +114,10 @@ public class CountDownStep extends Step implements Serializable {
             Optional.ofNullable(step.getLatch().getCountDownLatch())
                     .ifPresent(CountDownLatch::countDown);
         }
+
+        @Override
+        public void onResume() {
+            getContext().onFailure(new Exception("Resume after a restart not supported"));
+        }
     }
 }
