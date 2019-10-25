@@ -15,7 +15,7 @@ public class SemaphoreRef implements Serializable {
     private transient Semaphore semaphore;
 
     @Builder
-    private SemaphoreRef(int count) {
-        semaphore = new Semaphore(count, true);
+    private SemaphoreRef(int permit) {
+        semaphore = new Semaphore(permit, true);
     }
 }

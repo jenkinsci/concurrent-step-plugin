@@ -1,4 +1,4 @@
-def semaphore = createSemaphore 1
+def semaphore = createSemaphore permit:1
 def out2=0
 parallel(
         semaphore1: {

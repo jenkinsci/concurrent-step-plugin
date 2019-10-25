@@ -1,4 +1,4 @@
-def semaphore = createSemaphore 1
+def semaphore = createSemaphore permit:1
 parallel(
         semaphore1: {
             acquireSemaphore semaphore

@@ -17,7 +17,7 @@ import java.util.Set;
 public class CreateStep extends Step implements Serializable {
 
     private static final long serialVersionUID = 7880534681744801670L;
-    private int count = 1;
+    private int permit = 1;
 
     @Override
     public StepExecution start(StepContext stepContext) {
@@ -25,13 +25,13 @@ public class CreateStep extends Step implements Serializable {
     }
 
     @DataBoundConstructor
-    public CreateStep(int count) {
-        this.count = count;
+    public CreateStep(int permit) {
+        this.permit = permit;
     }
 
     @DataBoundSetter
-    public void setCount(int count) {
-        this.count = count;
+    public void setPermit(int permit) {
+        this.permit = permit;
     }
 
 
@@ -69,7 +69,7 @@ public class CreateStep extends Step implements Serializable {
         protected SemaphoreRef run() {
 
             return SemaphoreRef.builder()
-                    .count(step.getCount())
+                    .permit(step.getPermit())
                     .build();
 
         }
