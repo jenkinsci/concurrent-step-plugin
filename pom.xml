@@ -21,7 +21,7 @@
         <findbugs.failOnError>true</findbugs.failOnError>
 
     </properties>
-    <name>Concurrent Step Plugin</name>
+    <name>Concurrent Step</name>
     <description>Allows a pipeline to use java multithreading mechanism.
     </description>
     <url>https://wiki.jenkins-ci.org/display/JENKINS/Concurrent+Step+Plugin</url>
