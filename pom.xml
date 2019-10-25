@@ -9,6 +9,7 @@
         <version>3.49</version>
         <relativePath/>
     </parent>
+    <groupId>io.jenkins.plugins</groupId>
     <artifactId>concurrent-step</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>hpi</packaging>
