@@ -103,4 +103,4 @@ The lock will be released immediately after closure code is executed even an exc
 Because of its semantic, Semaphore block closure is a parameter of acquireSemaphore and should not release the lock manually again.
      
 # Samples
-See more samples at [src/test/resources]
+See more samples at [src/test/resources](src/test/resources)
