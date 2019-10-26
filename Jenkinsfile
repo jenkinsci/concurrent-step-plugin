@@ -1,0 +1,1 @@
+buildPlugin(findbugs: [archive: true])
