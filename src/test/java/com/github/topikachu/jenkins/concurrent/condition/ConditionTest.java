@@ -17,7 +17,7 @@ public class ConditionTest {
     public JenkinsRule r = new JenkinsRule();
 
 
-    @Test(timeout = 5000)
+    @Test(timeout = 30000)
     public void testSignalAllWithoutBody() throws Exception {
 
         String jenkinsFileContent = IOUtils.toString(ConditionTest.class.getResourceAsStream("Jenkinsfile.signalAllWithoutBody"));
@@ -28,7 +28,7 @@ public class ConditionTest {
         r.assertLogNotContains("out=false", b);
     }
 
-    @Test(timeout = 5000)
+    @Test(timeout = 30000)
     public void testSignalAllWithBody() throws Exception {
 
         String jenkinsFileContent = IOUtils.toString(ConditionTest.class.getResourceAsStream("Jenkinsfile.signalAllWithBody"));
@@ -39,7 +39,7 @@ public class ConditionTest {
         r.assertLogNotContains("out=false", b);
     }
 
-    @Test(timeout = 5000)
+    @Test(timeout = 30000)
     public void testSignalAllWithExceptionInBody() throws Exception {
 
         String jenkinsFileContent = IOUtils.toString(ConditionTest.class.getResourceAsStream("Jenkinsfile.signalAllWithExceptionInBody"));
@@ -52,7 +52,7 @@ public class ConditionTest {
 
     }
 
-    @Test(timeout = 5000)
+    @Test(timeout = 30000)
     public void testTimeout() throws Exception {
         String jenkinsFileContent = IOUtils.toString(ConditionTest.class.getResourceAsStream("Jenkinsfile.awaitTimeout"));
         WorkflowJob p = r.jenkins.createProject(WorkflowJob.class, "p");

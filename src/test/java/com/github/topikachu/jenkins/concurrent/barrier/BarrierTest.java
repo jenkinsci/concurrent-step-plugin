@@ -16,7 +16,7 @@ public class BarrierTest {
     @Rule
     public JenkinsRule r = new JenkinsRule();
 
-    @Test(timeout = 5000)
+    @Test(timeout = 30000)
     public void testAwaitWithoutBody() throws Exception {
 
         String jenkinsFileContent = IOUtils.toString(BarrierTest.class.getResourceAsStream("Jenkinsfile.awaitWithoutBody"));
@@ -29,7 +29,7 @@ public class BarrierTest {
     }
 
 
-    @Test(timeout = 5000)
+    @Test(timeout = 30000)
     public void testAwaitWithBody() throws Exception {
 
         String jenkinsFileContent = IOUtils.toString(BarrierTest.class.getResourceAsStream("Jenkinsfile.awaitWithBody"));
@@ -41,7 +41,7 @@ public class BarrierTest {
 
     }
 
-    @Test(timeout = 5000)
+    @Test(timeout = 30000)
     public void testAwaitWithExceptionInBody() throws Exception {
         String jenkinsFileContent = IOUtils.toString(BarrierTest.class.getResourceAsStream("Jenkinsfile.awaitWithExceptionInBody"));
         WorkflowJob p = r.jenkins.createProject(WorkflowJob.class, "p");
@@ -53,7 +53,7 @@ public class BarrierTest {
 
     }
 
-    @Test(timeout = 5000)
+    @Test(timeout = 30000)
     public void testTimeout() throws Exception {
         String jenkinsFileContent = IOUtils.toString(BarrierTest.class.getResourceAsStream("Jenkinsfile.awaitTimeout"));
         WorkflowJob p = r.jenkins.createProject(WorkflowJob.class, "p");

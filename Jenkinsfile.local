@@ -1,0 +1,27 @@
+timestamps {
+    podTemplate(
+            containers: [
+
+                    containerTemplate(name: 'maven',
+                            image: 'maven:3.6.1-jdk-8', ttyEnabled: true, command: 'cat'),
+
+            ],
+            volumes: [hostPathVolume(hostPath: '/var/jenkins/.m2', mountPath: './root/.m2')],
+    ) {
+
+        node(POD_LABEL) {
+            checkout scm
+            container('maven') {
+                        withMaven() {
+                            sh '''
+                            mvn clean test package verify
+                            '''
+
+                        }
+
+            }
+        }
+
+
+    }
+}
