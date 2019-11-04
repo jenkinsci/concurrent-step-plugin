@@ -16,7 +16,7 @@ public class LatchTest {
     @Rule
     public JenkinsRule r = new JenkinsRule();
 
-    @Test(timeout = 5000)
+    @Test(timeout = 30000)
     public void testCountDownLatchWithBody() throws Exception {
 
         String jenkinsFileContent = IOUtils.toString(LatchTest.class.getResourceAsStream("Jenkinsfile.countDownLatchWithBody"));
@@ -29,7 +29,7 @@ public class LatchTest {
         r.assertLogNotContains("var2=false", b);
     }
 
-    @Test(timeout = 5000)
+    @Test(timeout = 30000)
     public void testCountDownLatchWithoutBody() throws Exception {
 
         String jenkinsFileContent = IOUtils.toString(LatchTest.class.getResourceAsStream("Jenkinsfile.countDownLatchWithoutBody"));
@@ -42,7 +42,7 @@ public class LatchTest {
         r.assertLogNotContains("var2=false", b);
     }
 
-    @Test(timeout = 5000)
+    @Test(timeout = 30000)
     public void testCountDownLatchWithExceptionInBody() throws Exception {
 
         String jenkinsFileContent = IOUtils.toString(LatchTest.class.getResourceAsStream("Jenkinsfile.countDownLatchWithExceptionInBody"));
@@ -57,7 +57,7 @@ public class LatchTest {
 
     }
 
-    @Test(timeout = 5000)
+    @Test(timeout = 30000)
     public void testTimeout() throws Exception {
         String jenkinsFileContent = IOUtils.toString(LatchTest.class.getResourceAsStream("Jenkinsfile.awaitTimeout"));
         WorkflowJob p = r.jenkins.createProject(WorkflowJob.class, "p");

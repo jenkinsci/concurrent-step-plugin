@@ -12,7 +12,7 @@ public class SemaphoreTest {
     @Rule
     public JenkinsRule r = new JenkinsRule();
 
-    @Test(timeout = 5000)
+    @Test(timeout = 30000)
     public void testSemaphoreWithBody() throws Exception {
 
         String jenkinsFileContent = IOUtils.toString(SemaphoreTest.class.getResourceAsStream("Jenkinsfile.acquireWithBody"));
@@ -24,7 +24,7 @@ public class SemaphoreTest {
         r.assertLogNotContains("out2 0", b);
     }
 
-    @Test(timeout = 5000)
+    @Test(timeout = 30000)
     public void testSemaphoreWithoutBody() throws Exception {
 
         String jenkinsFileContent = IOUtils.toString(SemaphoreTest.class.getResourceAsStream("Jenkinsfile.acquireWithoutBody"));
@@ -36,7 +36,7 @@ public class SemaphoreTest {
         r.assertLogNotContains("out2 0", b);
     }
 
-    @Test(timeout = 5000)
+    @Test(timeout = 30000)
     public void testSemaphoreWithExceptionInBody() throws Exception {
 
         String jenkinsFileContent = IOUtils.toString(SemaphoreTest.class.getResourceAsStream("Jenkinsfile.acquireWithExceptionInBody"));
