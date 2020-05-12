@@ -103,48 +103,33 @@ public class AcquireStep extends Step implements Serializable {
             //All steps need to run in the same thread - otherwise we'll run into deadlocks / low concurrency situations.
 
             CompletableFuture
-                    .supplyAsync(() -> {
+                    .runAsync(() -> {
                         try {
+                            ExitStatus status;
                             if (step.getTimeout() > 0) {
                                 boolean acquired = semaphore.tryAcquire(step.getPermit(), step.getTimeout(), step.getUnit());
                                 if (acquired) {
-                                    return ExitStatus.COMPLETED;
+                                    status = ExitStatus.COMPLETED;
                                 } else {
-                                    return ExitStatus.TIMEOUT;
+                                    status = ExitStatus.TIMEOUT;
                                 }
                             } else {
                                 semaphore.acquire(step.getPermit());
-                                return ExitStatus.COMPLETED;
+                                status = ExitStatus.COMPLETED;
                             }
-                        } catch (InterruptedException e) {
-                            throw new ConcurrentInterruptedException(e);
-                        }
-                    })
-                    .thenApply((status) -> {
-                                if (status == ExitStatus.COMPLETED && getContext().hasBody()) {
-                                    try {
-                                        getContext().newBodyInvoker().start().get();
-                                    } catch (InterruptedException e) {
-                                        throw new ConcurrentInterruptedException(e);
-                                    } catch (ExecutionException e) {
-                                        throw new ConcurrentException(e);
-                                    } finally {
-                                        //don't move to next stage
-                                        //only release when acquiring with block
-                                        semaphore.release(step.getPermit());
-                                    }
-                                }
-                                return status;
+                            if (status == ExitStatus.COMPLETED && getContext().hasBody()) {
+                                getContext().newBodyInvoker().start().get();
                             }
-                    )
-                    .handle((status, throwable) -> {
-                        if (throwable == null) {
                             getContext().onSuccess(status);
-                        } else {
-                            getContext().onFailure(throwable);
+                        } catch (InterruptedException | ExecutionException e) {
+                            getContext().onFailure(new ConcurrentInterruptedException(e));
+                        } finally {
+                            if (getContext().hasBody()){
+                                semaphore.release();
+                            }
                         }
-                        return null;
                     });
+
             return false;
         }
 
