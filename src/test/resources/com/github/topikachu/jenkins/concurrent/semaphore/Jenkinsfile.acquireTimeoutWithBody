@@ -1,0 +1,14 @@
+def semaphore = createSemaphore permit:1
+parallel(
+        semaphore1: {
+            acquireSemaphore semaphore
+            //without release
+        },
+        semaphore2: {
+            sleep 1
+            acquireSemaphore (semaphore:semaphore, timeout:2){
+                echo "body run"
+            }
+        }
+)
+

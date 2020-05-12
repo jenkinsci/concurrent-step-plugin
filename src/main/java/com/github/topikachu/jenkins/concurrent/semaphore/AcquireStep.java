@@ -100,6 +100,8 @@ public class AcquireStep extends Step implements Serializable {
                     .map(SemaphoreRef::getSemaphore)
                     .orElseThrow(NotAValidLockRefException::new);
 
+            //All steps need to run in the same thread - otherwise we'll run into deadlocks / low concurrency situations.
+
             CompletableFuture
                     .supplyAsync(() -> {
                         try {
@@ -118,8 +120,8 @@ public class AcquireStep extends Step implements Serializable {
                             throw new ConcurrentInterruptedException(e);
                         }
                     })
-                    .thenApplyAsync((status) -> {
-                                if (getContext().hasBody()) {
+                    .thenApply((status) -> {
+                                if (status == ExitStatus.COMPLETED && getContext().hasBody()) {
                                     try {
                                         getContext().newBodyInvoker().start().get();
                                     } catch (InterruptedException e) {
@@ -135,7 +137,7 @@ public class AcquireStep extends Step implements Serializable {
                                 return status;
                             }
                     )
-                    .handleAsync((status, throwable) -> {
+                    .handle((status, throwable) -> {
                         if (throwable == null) {
                             getContext().onSuccess(status);
                         } else {

@@ -1,0 +1,14 @@
+def semaphore = createSemaphore permit:1
+def s = [:]
+
+for(int i = 0; i < $PARALLELISM$; i ++) // must be much more than threads on the fork-join-pool
+{
+ def id="${i}"
+ s.put("semaphore" + id, { -> acquireSemaphore (semaphore){
+                                  sleep time:100,unit:"MILLISECONDS"
+                                  echo "semaphore" + id + " body"
+                              }
+                         })
+}
+
+parallel s
