@@ -1,1 +1,1 @@
-buildPlugin(findbugs: [archive: true])
+buildPlugin()
